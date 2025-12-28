@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sortable Zoomable Column Chart</title>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Zoom plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background: #0f172a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .chart-container {
+            width: 90vw;
+            height: 90vh;
+            background: #020617;
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .controls {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 6px 12px;
+            background: #38bdf8;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="chart-container">
+    <canvas id="columnChart"></canvas>
+
+    <div class="controls">
+        <button onclick="sortAscending()">Sort ↑</button>
+        <button onclick="sortDescending()">Sort ↓</button>
+        <button onclick="chart.resetZoom()">Reset Zoom</button>
+    </div>
+</div>
+
+<script>
+    const labelsOriginal = [ @@LABELS ];
+    const dataOriginal   = [ @@VALUES ];
+
+    const ctx = document.getElementById('columnChart').getContext('2d');
+
+    const chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: [...labelsOriginal],
+            datasets: [{
+                label: 'Avg time',
+                data: [...dataOriginal],
+                backgroundColor: '#38bdf8'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    labels: { color: '#e5e7eb' }
+                },
+                zoom: {
+                    pan: {
+                        enabled: true,
+                        modifierKey: 'ctrl',
+                        mode: 'y'
+                    },
+                    zoom: {
+                        wheel: { enabled: true },
+                        drag: { enabled: true },
+                        mode: 'y'
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#e5e7eb' },
+                    grid: { color: '#1e293b' }
+                },
+                y: {
+                    ticks: { color: '#e5e7eb' },
+                    grid: { color: '#1e293b' }
+                }
+            }
+        }
+    });
+
+    function sortAscending() {
+        sortByValue((a, b) => a.value - b.value);
+    }
+
+    function sortDescending() {
+        sortByValue((a, b) => b.value - a.value);
+    }
+
+    function resetOrder() {
+        chart.data.labels = [...labelsOriginal];
+        chart.data.datasets[0].data = [...dataOriginal];
+        chart.update();
+    }
+
+    function sortByValue(compareFn) {
+        const combined = chart.data.labels.map((label, i) => ({
+            label,
+            value: chart.data.datasets[0].data[i]
+        }));
+
+        combined.sort(compareFn);
+
+        chart.data.labels = combined.map(e => e.label);
+        chart.data.datasets[0].data = combined.map(e => e.value);
+        chart.update();
+    }
+
+    sortDescending();
+</script>
+
+</body>
+</html>
